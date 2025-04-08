@@ -1,74 +1,96 @@
-let income = 0;
 let expenses = [];
+let income = 0;
 
-function updateIncome(value) {
-  income = parseFloat(value) || 0;
-  document.getElementById("income-display").textContent = `₹${income.toFixed(
-    2
-  )}`;
-  updateAnalytics();
+function updateIncome(val) {
+  income = parseFloat(val);
+  document.getElementById("income-display").innerText = income;
 }
 
-function addExpense(title, amount, date = new Date()) {
-  expenses.push({ title, amount: parseFloat(amount), date: new Date(date) });
-  renderExpenses();
-  updateAnalytics();
+function openModal() {
+  document.getElementById("expense-modal").classList.remove("hidden");
 }
 
-function renderExpenses() {
+function closeModal() {
+  document.getElementById("expense-modal").classList.add("hidden");
+  document.querySelector("form").reset();
+}
+
+function submitExpense(e) {
+  e.preventDefault();
+  const amount = parseFloat(document.getElementById("amount").value);
+  const category = document.getElementById("category").value;
+  const description = document.getElementById("description").value;
+  const date = new Date(document.getElementById("date").value);
+
+  const expense = { amount, category, description, date };
+  expenses.push(expense);
+  closeModal();
+  updateUI();
+}
+
+function updateUI() {
   const list = document.getElementById("expenses-list");
   list.innerHTML = "";
-
-  expenses
-    .slice()
-    .reverse()
-    .forEach((exp) => {
-      const item = document.createElement("div");
-      item.className = "flex justify-between items-center border-b pb-2";
-      item.innerHTML = `
-      <div>
-        <p class="font-medium">${exp.title}</p>
-        <p class="text-xs text-gray-500">${exp.date.toLocaleString()}</p>
-      </div>
-      <div class="text-red-500 font-bold">₹${exp.amount.toFixed(2)}</div>
-    `;
-      list.appendChild(item);
-    });
-}
-
-function updateAnalytics() {
+  let weekly = 0,
+    monthly = 0;
   const now = new Date();
-  const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const catTotals = {};
 
-  let weeklyTotal = 0,
-    monthlyTotal = 0;
+  expenses.forEach((exp) => {
+    const diffDays = (now - new Date(exp.date)) / (1000 * 3600 * 24);
+    if (diffDays <= 7) weekly += exp.amount;
+    if (now.getMonth() === new Date(exp.date).getMonth()) monthly += exp.amount;
 
-  expenses.forEach((e) => {
-    const d = new Date(e.date);
-    if (d >= startOfWeek) weeklyTotal += e.amount;
-    if (d >= startOfMonth) monthlyTotal += e.amount;
+    // Render each expense
+    const item = document.createElement("div");
+    item.className = "border p-2 rounded-md bg-gray-50";
+    item.innerHTML = `
+      <div class="font-semibold text-gray-800">₹${exp.amount} - ${
+      exp.category
+    }</div>
+      <div class="text-sm text-gray-500">${
+        exp.description || "No description"
+      } - ${new Date(exp.date).toLocaleString()}</div>
+    `;
+    list.appendChild(item);
+
+    // Category Totals
+    catTotals[exp.category] = (catTotals[exp.category] || 0) + exp.amount;
   });
 
-  document.getElementById("weekly-total").textContent = `₹${weeklyTotal.toFixed(
-    2
-  )}`;
-  document.getElementById(
-    "monthly-total"
-  ).textContent = `₹${monthlyTotal.toFixed(2)}`;
+  document.getElementById("weekly-total").innerText = `₹${weekly}`;
+  document.getElementById("monthly-total").innerText = `₹${monthly}`;
+
+  updateChart(catTotals);
 }
 
-function addExpensePrompt() {
-  const title = prompt("Expense Title:");
-  const amount = prompt("Expense Amount (₹):");
-  if (title && amount && !isNaN(amount)) {
-    addExpense(title, parseFloat(amount));
-  } else {
-    alert("Invalid input!");
-  }
+// Chart.js
+let chart;
+function updateChart(data) {
+  const ctx = document.getElementById("category-chart").getContext("2d");
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: Object.keys(data),
+      datasets: [
+        {
+          data: Object.values(data),
+          backgroundColor: [
+            "#6366f1",
+            "#f97316",
+            "#10b981",
+            "#eab308",
+            "#ef4444",
+          ],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom" },
+      },
+    },
+  });
 }
-
-// Load with demo data
-addExpense("Milk", 40);
-addExpense("Recharge", 199);
-addExpense("Auto fare", 80);
