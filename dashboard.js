@@ -3,7 +3,9 @@ let income = 0;
 
 function updateIncome(value) {
   income = parseFloat(value) || 0;
-  document.getElementById("income-display").textContent = `₹${income.toFixed(2)}`;
+  document.getElementById("income-display").textContent = `₹${income.toFixed(
+    2
+  )}`;
   updateAnalytics();
 }
 
@@ -48,5 +50,15 @@ function updateAnalytics() {
     if (date >= startOfMonth) monthlyTotal += exp.amount;
   });
 
-  document.getElementById("weekly-total").textContent = `₹${weeklyTotal.toFixed(2)}`;
-  document.getElementById("monthly-total").text
+  document.getElementById("weekly-total").textContent = `₹${weeklyTotal.toFixed(
+    2
+  )}`;
+  document.getElementById(
+    "monthly-total"
+  ).textContent = `₹${monthlyTotal.toFixed(2)}`;
+}
+
+// For demo: Add sample expenses
+addExpense("Groceries", 1200, "2025-04-06T10:00:00");
+addExpense("Internet Bill", 999, "2025-04-01T12:30:00");
+addExpense("Dinner", 650, "2025-04-07T20:15:00");

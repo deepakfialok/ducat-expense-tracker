@@ -1,96 +1,167 @@
-let expenses = [];
-let income = 0;
+const incomeCategories = ["Salary", "Bonus", "Investment"];
+const expenseCategories = [
+  "Food",
+  "Transport",
+  "Shopping",
+  "Utilities",
+  "Entertainment",
+  "Other",
+];
 
-function updateIncome(val) {
-  income = parseFloat(val);
-  document.getElementById("income-display").innerText = income;
+let transactions = [];
+
+// Load transactions from JSON or fallback to dummy data
+async function loadTransactions() {
+  try {
+    const res = await fetch("transactions.json");
+    transactions = await res.json();
+  } catch (err) {
+    console.warn("Failed to load transactions.json. Using dummy data.");
+    transactions = [
+      {
+        type: "expense",
+        title: "Pizza",
+        amount: 250,
+        category: "Food",
+        dateTime: new Date().toISOString(),
+        note: "Dinner with friends",
+      },
+      {
+        type: "income",
+        title: "Freelancing",
+        amount: 2000,
+        category: "Salary",
+        dateTime: new Date().toISOString(),
+        note: "Client project",
+      },
+    ];
+  }
+
+  renderDashboard();
+  renderRecentTransactions();
+}
+
+function renderDashboard() {
+  const totalBudget = transactions
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+  const totalExpenses = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+  document.getElementById("total-budget").textContent = `₹${totalBudget.toFixed(
+    2
+  )}`;
+  document.getElementById(
+    "total-expense"
+  ).textContent = `₹${totalExpenses.toFixed(2)}`;
+}
+
+function renderRecentTransactions() {
+  const list = document.getElementById("recent-transactions");
+  list.innerHTML = "";
+  transactions
+    .slice()
+    .reverse()
+    .forEach((t) => {
+      const icon = t.type === "expense" ? "⬇️" : "⬆️";
+      const sign = t.type === "expense" ? "-" : "+";
+      const item = `
+      <div class="bg-white shadow-md rounded-lg p-4 mb-2">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-3">
+            <span class="text-xl">${icon}</span>
+            <div>
+              <h4 class="font-bold">${t.title}</h4>
+              <p class="text-sm text-gray-500">${t.category}</p>
+              <p class="text-xs text-gray-400">${formatDate(t.dateTime)}</p>
+            </div>
+          </div>
+          <div class="text-lg font-semibold ${
+            t.type === "expense" ? "text-red-600" : "text-green-600"
+          }">
+            ${sign}₹${t.amount}
+          </div>
+        </div>
+      </div>
+    `;
+      list.insertAdjacentHTML("beforeend", item);
+    });
 }
 
 function openModal() {
   document.getElementById("expense-modal").classList.remove("hidden");
+  document.getElementById("amount").value = 100;
+  document.getElementById("title").value = "";
+  document.getElementById("note").value = "";
+  document.getElementById("type").value = "expense";
+
+  updateCategoryOptions("expense");
+
+  const now = new Date();
+  const localISOTime = now.toISOString().slice(0, 16);
+  document.getElementById("date").value = localISOTime;
+
+  document.getElementById("amount").focus();
 }
 
 function closeModal() {
   document.getElementById("expense-modal").classList.add("hidden");
-  document.querySelector("form").reset();
 }
 
-function submitExpense(e) {
+function updateCategoryOptions(type) {
+  const select = document.getElementById("category");
+  const categories = type === "income" ? incomeCategories : expenseCategories;
+  select.innerHTML = categories
+    .map((cat) => `<option value="${cat}">${cat}</option>`)
+    .join("");
+}
+
+// Event: switch category when type changes
+document.getElementById("type").addEventListener("change", (e) => {
+  updateCategoryOptions(e.target.value);
+});
+
+// Event: handle form submit
+document.getElementById("add-form").addEventListener("submit", (e) => {
   e.preventDefault();
-  const amount = parseFloat(document.getElementById("amount").value);
-  const category = document.getElementById("category").value;
-  const description = document.getElementById("description").value;
-  const date = new Date(document.getElementById("date").value);
+  const newEntry = {
+    type: document.getElementById("type").value,
+    title: document.getElementById("title").value.trim(),
+    amount: parseFloat(document.getElementById("amount").value),
+    category: document.getElementById("category").value,
+    dateTime: document.getElementById("date").value,
+    note: document.getElementById("note").value.trim(),
+  };
 
-  const expense = { amount, category, description, date };
-  expenses.push(expense);
+  if (!newEntry.title || isNaN(newEntry.amount)) {
+    alert("Please enter a valid title and amount.");
+    return;
+  }
+
+  transactions.push(newEntry);
   closeModal();
-  updateUI();
-}
+  renderDashboard();
+  renderRecentTransactions();
 
-function updateUI() {
-  const list = document.getElementById("expenses-list");
-  list.innerHTML = "";
-  let weekly = 0,
-    monthly = 0;
-  const now = new Date();
-  const catTotals = {};
+  Toastify({
+    text: `${newEntry.type === "expense" ? "Expense" : "Income"} added!`,
+    duration: 3000,
+    gravity: "top",
+    position: "right",
+    backgroundColor: "#10b981",
+  }).showToast();
+});
 
-  expenses.forEach((exp) => {
-    const diffDays = (now - new Date(exp.date)) / (1000 * 3600 * 24);
-    if (diffDays <= 7) weekly += exp.amount;
-    if (now.getMonth() === new Date(exp.date).getMonth()) monthly += exp.amount;
-
-    // Render each expense
-    const item = document.createElement("div");
-    item.className = "border p-2 rounded-md bg-gray-50";
-    item.innerHTML = `
-      <div class="font-semibold text-gray-800">₹${exp.amount} - ${
-      exp.category
-    }</div>
-      <div class="text-sm text-gray-500">${
-        exp.description || "No description"
-      } - ${new Date(exp.date).toLocaleString()}</div>
-    `;
-    list.appendChild(item);
-
-    // Category Totals
-    catTotals[exp.category] = (catTotals[exp.category] || 0) + exp.amount;
-  });
-
-  document.getElementById("weekly-total").innerText = `₹${weekly}`;
-  document.getElementById("monthly-total").innerText = `₹${monthly}`;
-
-  updateChart(catTotals);
-}
-
-// Chart.js
-let chart;
-function updateChart(data) {
-  const ctx = document.getElementById("category-chart").getContext("2d");
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: Object.keys(data),
-      datasets: [
-        {
-          data: Object.values(data),
-          backgroundColor: [
-            "#6366f1",
-            "#f97316",
-            "#10b981",
-            "#eab308",
-            "#ef4444",
-          ],
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: "bottom" },
-      },
-    },
+// Utility: format datetime string
+function formatDate(isoString) {
+  const date = new Date(isoString);
+  return date.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
   });
 }
+
+// Initialize on load
+document.addEventListener("DOMContentLoaded", loadTransactions);
