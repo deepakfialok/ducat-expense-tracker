@@ -1,6 +1,0 @@
-/* Optional: Add a subtle animation or focus style */
-input:focus,
-button:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4); /* Indigo glow */
-}

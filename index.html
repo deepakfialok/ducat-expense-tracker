@@ -3,125 +3,115 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mini Expense Tracker</title>
+    <title>Simple Expense & Income Tracker</title>
     <link
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="style.css" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
   </head>
-  <body class="bg-gray-100 min-h-screen flex flex-col">
-    <!-- Dashboard -->
-    <div class="p-4">
-      <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
-      <div class="grid grid-cols-2 gap-4 mb-6">
-        <div
-          class="bg-green-100 text-green-800 p-4 rounded-lg text-center shadow"
+  <body
+    class="bg-gray-100 h-screen flex flex-col items-center justify-start p-4"
+  >
+    <div class="bg-white rounded-lg shadow-md w-full max-w-md p-6 mb-4">
+      <h1 class="text-2xl font-bold text-center text-blue-500 mb-4">
+        <i class="fas fa-money-bill-wave mr-2"></i> Ducat- Expense Tracker using
+        Array
+      </h1>
+
+      <div class="grid grid-cols-3 gap-4 text-center mb-4">
+        <div>
+          <p class="text-gray-600 text-sm">Total Budget</p>
+          <p id="totalBudget" class="font-semibold text-green-500">₹0</p>
+        </div>
+        <div>
+          <p class="text-gray-600 text-sm">Total Expense</p>
+          <p id="totalExpense" class="font-semibold text-rose-500">₹0</p>
+        </div>
+        <div>
+          <p class="text-gray-600 text-sm">Remaining</p>
+          <p id="remainingAmount" class="font-semibold">₹0</p>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="type" class="block text-gray-700 text-sm font-bold mb-2"
+          >Type</label
         >
-          <h2 class="text-sm font-semibold">Total Income</h2>
-          <p id="total-budget" class="text-xl font-bold">₹0</p>
-        </div>
-        <div class="bg-red-100 text-red-800 p-4 rounded-lg text-center shadow">
-          <h2 class="text-sm font-semibold">Total Expense</h2>
-          <p id="total-expense" class="text-xl font-bold">₹0</p>
-        </div>
+        <select
+          id="type"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        >
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
       </div>
-      <h2 class="text-lg font-semibold mb-2">Recent Transactions</h2>
-      <div id="recent-transactions"></div>
-    </div>
 
-    <!-- Bottom Navigation -->
-    <nav
-      class="fixed bottom-0 w-full bg-white border-t shadow-lg flex justify-around p-2 z-50"
-    >
-      <a href="index.html" class="flex flex-col items-center text-gray-600">
-        <span>🏠</span>
-        <span class="text-xs">Home</span>
-      </a>
-      <a
-        href="transactions.html"
-        class="flex flex-col items-center text-gray-600"
-      >
-        <span>📄</span>
-        <span class="text-xs">Transactions</span>
-      </a>
+      <div class="mb-4">
+        <label for="category" class="block text-gray-700 text-sm font-bold mb-2"
+          >Category</label
+        >
+        <select
+          id="category"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        >
+          <option value="food">Food</option>
+          <option value="utilities">Utilities</option>
+          <option value="transportation">Transportation</option>
+          <option value="entertainment">Entertainment</option>
+          <option value="salary">Salary</option>
+          <option value="freelance">Freelance</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label
+          for="description"
+          class="block text-gray-700 text-sm font-bold mb-2"
+          >Description</label
+        >
+        <input
+          type="text"
+          id="description"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label for="amount" class="block text-gray-700 text-sm font-bold mb-2"
+          >Amount</label
+        >
+        <input
+          type="number"
+          id="amount"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        />
+      </div>
+
       <button
-        onclick="window.location.href='index.html'; openModal();"
-        class="bg-green-500 text-white rounded-full w-12 h-12 -mt-6 flex items-center justify-center shadow-lg"
+        id="addTransaction"
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
       >
-        ＋
+        <i class="fas fa-plus mr-2"></i> Add Transaction
       </button>
-      <a href="analytics.html" class="flex flex-col items-center text-gray-600">
-        <span>📊</span>
-        <span class="text-xs">Stats</span>
-      </a>
-    </nav>
+    </div>
 
-    <!-- Modal -->
-    <div
-      id="expense-modal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden"
-    >
-      <div class="bg-white p-6 rounded-lg w-11/12 max-w-md shadow-lg">
-        <h3 class="text-lg font-bold mb-4">Add Transaction</h3>
-        <form id="add-form" class="space-y-4">
-          <select id="type" class="w-full p-2 border rounded">
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
-          </select>
-          <input
-            type="text"
-            id="title"
-            placeholder="Title"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <input
-            type="number"
-            id="amount"
-            placeholder="Amount"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <select
-            id="category"
-            class="w-full p-2 border rounded"
-            required
-          ></select>
-          <input
-            type="datetime-local"
-            id="date"
-            class="w-full p-2 border rounded"
-            required
-          />
-          <textarea
-            id="note"
-            placeholder="Note (optional)"
-            class="w-full p-2 border rounded"
-          ></textarea>
-          <div class="flex justify-end space-x-2">
-            <button
-              type="button"
-              onclick="closeModal()"
-              class="px-4 py-2 bg-gray-300 rounded"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Add
-            </button>
-          </div>
-        </form>
+    <div class="bg-white rounded-lg shadow-md w-full max-w-md p-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">
+        <i class="fas fa-list-ul mr-2"></i> Transactions
+      </h2>
+      <ul id="transactionList" class="divide-y divide-gray-200"></ul>
+      <div id="totalBalance" class="font-semibold text-gray-800 mt-2">
+        Balance: ₹0
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="app.js"></script>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
   </body>
 </html>
